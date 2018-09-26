@@ -1,11 +1,8 @@
-//File Name: assign1_jla160.cpp
-//
+//Assignment 1
+//CS 2308.004 Fall 2018
 //Author: Jakob Arsement
 //Date: 8/23/2018
-//Assignment Number: 1
-//CS 2308.004 Fall 2018
-//Instructor: Jill Seaman
-//
+
 /*
 This program is designed to allow the user to interact with a table
 representing a predetermined monthly budget of $1150. Table changes
@@ -46,11 +43,8 @@ struct Category
 //
 // returns: zero
 //***********************************************************
-
 int main()
 {
-
-
     int num; //num is widely used for the user input value
 
     //fill array of structs with budget table entries
@@ -66,13 +60,8 @@ int main()
     }                               //value in 'num'
     while(num != 8);     //8 is quit
 
-
-
     return 0;
 }
-
-
-
 
 //***********************************************************
 // table: prints budget table for user in an easy-to-read format
@@ -80,7 +69,6 @@ int main()
 // p2: array of structures for budget values
 // returns: void
 //***********************************************************
-
 void table(struct Category budget[])
 {
     cout << setw(24) << left << "\n  Category" << setw(15) << "Allocated"
@@ -127,7 +115,6 @@ void table(struct Category budget[])
 // p2: user input variable
 // returns: user input
 //***********************************************************
-
 int user(struct Category budget[], int num)
 {
      double addSpent = 0;
@@ -193,7 +180,6 @@ int user(struct Category budget[], int num)
 // p2: an argument to determine which section of spent fn to use
 // returns: budget for specific category if argument is < 6
 //***********************************************************
-
 double spent(struct Category budget[], int i)
 {
     //calculates over/under relative to i, which is table location.
