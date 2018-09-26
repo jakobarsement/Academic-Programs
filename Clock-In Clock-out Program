@@ -71,7 +71,7 @@ int readFile(Category data[])
     }
     return index;
 }
-
+  
 //***********************************************************
 // bubbleSort: sorts the array of structs by time.
 // works in collaboration with displayByTime()
