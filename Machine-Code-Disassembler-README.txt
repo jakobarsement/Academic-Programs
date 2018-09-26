@@ -5,7 +5,7 @@ It is the first program we were assigned in the introduction to
 computer architecture and assembly language.
 
 Example Output:
-
+ 
 400000: j 400114
   400004: sw $ra, -4($sp)
   400008: sw $fp, -8($sp)
