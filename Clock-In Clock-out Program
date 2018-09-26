@@ -1,0 +1,329 @@
+//Assignment 2 
+//Author: Jakob Arsement
+//Date: 9/22/2018
+//CS 2308.004 Fall 2018
+
+/*
+This program is created for a clock-in scenario at a research lab, and
+allows the manager to monitor access more effortlessly. Each member of
+the lab has access provided by their personal ID card. Given a set of
+less than 101 entry-reentry events, this program can display the events
+sorted by ID numbers or time, print the employee in question's name given
+their ID number, and find out the presence of a particular employee.
+*/
+
+#include <cstdlib>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cmath>
+#include <iomanip>
+
+using namespace std;
+struct Category         //structure declaration
+{
+    int id;
+    string name;
+    string time;
+    int forRank;
+};
+const int SIZE = 100;       //constant array size because program will
+Category data[SIZE];        //not process more than 100 entry-reentries
+Category sortable[SIZE];   //for the bubbleSort by time function
+
+//***********************************************************
+// menu: displays menu to user
+//
+// returns: void
+//***********************************************************
+void menu()
+{
+    cout << "\nMenu\n\n";
+    cout << "1. " << "Display events sorted by ID\n";
+    cout << "2. " << "Display events sorted by time\n";
+    cout << "3. " << "Lookup a person by ID\n";
+    cout << "4. " << "Lookup the presence of the person by ID\n";
+    cout << "5. " << "Quit the Program\n\n";
+}
+
+//***********************************************************
+// readFile: reads data in from dataset.txt and stores in data[]
+// uses fstream library to open file with ifstream and uses fin
+// as operator
+//
+// p1: array of structures named data[]
+// returns: index, the number of rows in dataset.txt
+//***********************************************************
+int readFile(Category data[])
+{
+    int verifyInt;
+    ifstream fin;
+    fin.open("dataset.txt");
+    int index = 0;
+    while ( fin >> verifyInt)       //reads in data until there is no more.
+    {                               //increments to keep track of row #
+        data[index].id = verifyInt;
+        fin >> data[index].name >> data[index].time;
+        sortable[index].name = data[index].name;
+        sortable[index].time = data[index].time;
+        sortable[index].id = data[index].id;
+        index++;
+    }
+    return index;
+}
+
+//***********************************************************
+// bubbleSort: sorts the array of structs by time.
+// works in collaboration with displayByTime()
+//
+// p1: sortable, 2nd array of structs for sorting
+// p2: index, to know the number of rows and when to stop
+//
+// returns: void
+//***********************************************************
+void bubbleSort(Category sortable[], int index)
+{
+   bool change;
+   int temp1, temp4;
+   string temp2, temp3;
+
+   do
+   {
+      change = false;
+      for (int incr = 0; incr < (index - 1); incr++)
+      {
+         if (sortable[incr].forRank > sortable[incr + 1].forRank)
+         {
+
+            temp1 = sortable[incr].id;
+            temp2 = sortable[incr].name;
+            temp3 = sortable[incr].time;
+            temp4 = sortable[incr].forRank;
+            sortable[incr] = sortable[incr + 1];
+            sortable[incr + 1].id = temp1;
+            sortable[incr + 1].name = temp2;
+            sortable[incr + 1].time = temp3;
+            sortable[incr + 1].forRank = temp4;
+            change = true;
+         }
+      }
+   } while (change);
+}
+
+//***********************************************************
+// displayByTime: ranks events by their sortable[].time string characters
+// using point system. calls bubbleSort() to do the sorting then
+// prints the sorted version of the array.
+//
+// p1: sortable, 2nd array of structs for ranking/sorting
+// p2: index, to know the number of rows and when to stop
+//
+// returns: void
+//***********************************************************
+void displayByTime(Category sortable[], int index)
+{
+    //rank the times using ascii values
+    for(int i = 0; i < index; i++)
+    {
+        //if PM, then promote 2 levels
+        if(sortable[i].time[5] == 'P')
+            sortable[i].forRank = sortable[i].forRank + 100000;
+
+        //if first character is 1, promote 1 level
+        if(sortable[i].time[0] == '1')
+            sortable[i].forRank = sortable[i].forRank + 50000;
+
+        sortable[i].forRank = sortable[i].forRank +  //gives points to sortRank
+        (1000*(sortable[i].time[1] - 48));           //on a magnitude that
+        sortable[i].forRank = sortable[i].forRank +  //reflects importance
+        (50*(sortable[i].time[3] - 48));
+        sortable[i].forRank = sortable[i].forRank +
+        (sortable[i].time[4] - 48);
+
+        //special case for 12:00AM
+        if(sortable[i].time[0] == '1' && sortable[i].time[1] == '2'
+           && sortable[i].time[5] == 'A')
+        {
+            sortable[i].forRank = sortable[i].forRank - 52000;
+        }
+    }
+    bubbleSort(sortable, index); //see bubbleSort()
+    for(int i=0; i < index; i++)
+    {
+        cout << setw(6)  << sortable[i].id << "  ";
+        cout << setw(12) << sortable[i].name << "  ";           //print newly
+        cout << setw(10) << sortable[i].time << "  " << endl;   //sorted array
+    }
+}
+
+//***********************************************************
+// binarySearch: uses binary search algorithm paired with
+//               lookupByID function
+//
+// p1: data[], 1st array of structs that holds dataset.txt data
+// p2: index, size of filled portion of array
+// p3: value of employee ID number
+// returns: index position of employee within array
+//***********************************************************
+int binarySearch(struct Category data[], int index, int value)
+{
+   int first = 0,             // First array element
+       last = index - 1,       // Last array element
+       middle,                // Mid point of search
+       position = -1;         // Position of search value
+   bool found = false;        // Flag
+
+   while (!found && first <= last)
+   {
+      middle = (first + last) / 2;     // Calculate mid point
+      if (data[middle].id == value)      // If value is found at mid
+      {
+         found = true;
+         position = middle;
+      }
+      else if (data[middle].id > value)  // If value is in lower half
+         last = middle - 1;
+      else
+         first = middle + 1;           // If value is in upper half
+   }
+   return position;
+}
+
+//***********************************************************
+// lookupByID: looks up employee based on ID number.
+//                pairs with binarySearch function
+//
+// p2: index, size of filled portion of array
+// returns: void
+//***********************************************************
+void lookupByID(int index)
+{
+    int employeeID;
+    int results;
+    cout << "Enter the ID of an employee you want to search for:  ";
+    cin  >> employeeID;
+    results = binarySearch(data, index, employeeID);   // Search for the ID.
+                                                       //if results are -1
+    if(results == -1)                                  //then emp not found
+    {                                                  //(See binarySearch)
+        cout << "That employee either doesn't exist or is ";
+        cout << "not here right now.";
+    }
+
+    if(results != -1)
+    {
+        cout << "The name of the employee with ID " << employeeID << " is:  ";
+        cout << data[results].name << endl;
+    }
+}
+
+//***********************************************************
+// presenceByID: determines the presence of a particular
+//               employee based on their ID number
+//
+// p1: index, the size of the filled portion of the array
+// returns: void
+//***********************************************************
+void presenceByID(int index)
+{
+    int incr = 0;
+    int employeeID;
+    cout << "Enter employee ID to check employee's presence:  ";
+    cin  >> employeeID;
+    for(int i = 0; i < index; i++)      //counts every entry/reentry
+        if (data[i].id == employeeID)
+            incr++;
+
+    //if number of events is odd, then employee hasn't left yet
+    if((incr%2) == 1)
+        cout << "Employee with ID " << employeeID << " is present.\n";
+
+    //if number of events is even, then employee has left
+    if((incr%2) == 0 && incr != 0)
+        cout << "Employee with ID " << employeeID << " is absent.\n";
+
+    //if no entry by that employee, then print following statement
+    if(incr == 0)
+        cout << "An employee with that ID can't be found right now.\n";
+}
+
+//***********************************************************
+// user: does the initial interaction with the user by cin & cout
+//
+// p1: data[], 1st array that contains entry-reentry data
+// p2: num, the input that the user gives the main prompt
+//
+// returns: user input for further use by main switch cases
+//***********************************************************
+int user(struct Category data[], int num)
+{
+    cout << "Enter your choice:  ";  //primary user interface prompt
+    cin  >> num;
+    cout << endl;
+    while(num < 1 || num > 5)
+    {
+        //check for invalid entry and re prompt if so
+        cout << "Number must be 1-5. Please try again:  ";
+        cin  >> num;
+        cout << endl;
+    }
+    return num;
+}
+
+//***********************************************************
+// main: declares important variables and makes decisions based
+//       on user input using switch statement + other functions.
+//       keeps while loop running so program doesn't quit until
+//       user decides.
+//
+// returns: returns value zero
+//***********************************************************
+int main()
+{
+    int num;        //for user input
+    int index;      //to count # of rows with readFile()
+    index = readFile(data); //read file into data[]
+
+    do
+    {
+        //print menu
+        menu();
+        num = user(data, num);  //store user input in num
+
+        switch(num)
+        {
+            //print events already sorted by id
+            case 1:
+                for(int i=0; i < index; i++)
+                {
+                    cout << setw(6) << data[i].id << "  ";
+                    cout << setw(12) << data[i].name << "  ";
+                    cout << setw(10) << data[i].time << endl;
+                }
+                break;
+            //print events after they've been sorted by .time
+            case 2:
+                displayByTime(sortable, index);
+                break;
+            //prompts user for an employee's ID
+            //print employee's name when their ID is entered
+            case 3:
+                lookupByID(index);
+                break;
+            //checks to see if the employee is present or not
+            case 4:
+                presenceByID(index);
+                break;
+            //exits the program when 5 is entered after menu
+            case 5:
+                cout << "Exiting the program...\n";
+                return -1;
+            //tells user there is a problem with the code
+            default:
+                cout << "ERROR: Program is corrupt...\n";
+                break;
+        }
+    }
+    while(true);
+    return 0;
+}
